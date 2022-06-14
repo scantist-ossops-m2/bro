@@ -152,22 +152,57 @@ bool GREAnalyzer::AnalyzePacket(size_t len, const uint8_t* data, Packet* packet)
 
 		else if ( proto_typ == 0x8200 )
 			{
-			// ARUBA. Following headers seem like they're always a 26-byte 802.11 QoS header, then
-			// an 8-byte LLC header, then IPv4. There's very little in the way of documentation
-			// for ARUBA's header format. This is all based on the one sample file we have that
-			// contains it.
-			if ( len > gre_len + 34 )
-				{
-				gre_link_type = DLT_EN10MB;
-				erspan_len = 34;
+			// ARUBA. The next thing that follows an ARUBA header is an 802.11 QoS header, and then
+			// things get dumb based on what's in that header. Normally, it'd just be an LLC header
+			// that we can skip, but not always. There's other things that can happen based on
+			// the flags present in the header.
 
-				// TODO: fix this, but it's gonna require quite a bit more surgery to the GRE
-				// analyzer to make it more independent from the IPTunnel analyzer.
-				// Setting gre_version to 1 here tricks the IPTunnel analyzer into treating the
-				// first header as IP instead of Ethernet which it does by default when
-				// gre_version is 0.
-				gre_version = 1;
-				proto = (data[gre_len + 34] & 0xF0) >> 4;
+			if ( len > gre_len + 26 )
+				{
+				const uint8_t* ieee80211 = data + gre_len + 26;
+				// CCMP is an encrypted payload inside of the QoS, and we can't decrypt it. Just
+				// report a weird and move on. The presence of CCMP is denoted by the "Protected"
+				// flag in the Control Field flags, which are byte #2 in the header.
+				if ( (ieee80211[1] >> 6) == 1 )
+					{
+					Weird("aruba_ccmp_encryption", packet);
+					return false;
+					}
+
+				// Aggregates. It's possible for an 802.11 packet to contain multiple inner
+				// packets. This is frame aggregation, which in an optimization to allow 802.11
+				// to batch multiple smaller packets into one. We don't properly handle this
+				// since it would require some amount of reentrancy in the encapsulation
+				// code. In the meantime, parse out the first one and skip the rest. The
+				// presence of aggregates is denoted by the QoS Control -> Payload Type flag
+				// being set to 1.
+				else if ( (ieee80211[24] >> 7) == 1 )
+					{
+					Weird("aruba_aggregate_msdu", packet);
+					return false;
+					}
+
+				// Otherwise, we just get a 802.11 QoS header followed by a happy LLC header
+				// and everything is great and we can parse the inner payload for once. Well,
+				// assuming we actually have enough data for that.
+				else if ( len > gre_len + 26 + 8 )
+					{
+					gre_link_type = DLT_EN10MB;
+					erspan_len = 34;
+
+					// TODO: fix this, but it's gonna require quite a bit more surgery to the GRE
+					// analyzer to make it more independent from the IPTunnel analyzer.
+					// Setting gre_version to 1 here tricks the IPTunnel analyzer into treating the
+					// first header as IP instead of Ethernet which it does by default when
+					// gre_version is 0.
+					gre_version = 1;
+					proto = (data[gre_len + 34] & 0xF0) >> 4;
+					}
+				else
+					{
+					Weird("truncated_GRE", packet);
+					return false;
+					}
 				}
 			else
 				{
