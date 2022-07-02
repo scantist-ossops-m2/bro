@@ -70,6 +70,10 @@ extern HeapLeakChecker* heap_checker;
 #include <pthread_np.h>
 #endif
 
+#define FMT_HEADER_ONLY
+#include <fmt/format.h>
+#include <fmt/printf.h>
+
 extern "C"
 	{
 #include "zeek/3rdparty/modp_numtoa.h"
@@ -352,8 +356,28 @@ extern const char* fmt_bytes(const char* data, int len);
 
 // Note: returns a pointer into a shared buffer.
 extern const char* vfmt(const char* format, va_list args);
-// Note: returns a pointer into a shared buffer.
-extern const char* fmt(const char* format, ...) __attribute__((format(printf, 1, 2)));
+
+template <typename... Args>
+const char* fmt(const char* format, Args&&... args)
+	{
+	static char* buf = nullptr;
+	static size_t buf_len = 1024;
+
+	std::string out = fmt::sprintf(format, args...);
+	if ( buf_len < out.size() )
+		{
+		buf_len = out.size();
+		delete[] buf;
+		buf = nullptr;
+		}
+
+	if ( ! buf )
+		buf = new char[buf_len+1];
+
+	strncpy(buf, out.data(), out.size());
+	buf[out.size()] = '\0';
+	return buf;
+	}
 
 // Returns true if path exists and is a directory.
 bool is_dir(const std::string& path);

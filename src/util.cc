@@ -1629,15 +1629,6 @@ const char* vfmt(const char* format, va_list al)
 	return buf;
 	}
 
-const char* fmt(const char* format, ...)
-	{
-	va_list al;
-	va_start(al, format);
-	auto rval = vfmt(format, al);
-	va_end(al);
-	return rval;
-	}
-
 bool is_dir(const std::string& path)
 	{
 	struct stat st;
