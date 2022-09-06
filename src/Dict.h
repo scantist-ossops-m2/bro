@@ -111,7 +111,7 @@ public:
 		};
 
 	DictEntry(void* arg_key, uint32_t key_size = 0, hash_t hash = 0, T* value = nullptr,
-	          int16_t d = TOO_FAR_TO_REACH, bool copy_key = false)
+	          uint16_t d = TOO_FAR_TO_REACH, bool copy_key = false)
 		: distance(d), key_size(key_size), hash((uint32_t)hash), value(value)
 		{
 		if ( ! arg_key )
@@ -179,6 +179,29 @@ public:
 
 	bool operator==(const DictEntry& r) const { return Equal(r.GetKey(), r.key_size, r.hash); }
 	bool operator!=(const DictEntry& r) const { return ! Equal(r.GetKey(), r.key_size, r.hash); }
+
+	void Clone(const DictEntry& e, CloneState* state)
+		{
+		if ( this == &e )
+			return;
+
+#ifdef DEBUG
+		bucket = e.bucket;
+#endif
+		distance = e.distance;
+		key_size = e.key_size;
+		hash = e.hash;
+		if ( key_size <= 8 )
+			memcpy(key_here, e.key_here, key_size);
+		else
+			{
+			key = new char[key_size];
+			memcpy(key, e.key, key_size);
+			}
+
+		if ( e.value )
+			value = e.value->Clone(state);
+		}
 	};
 
 using DictEntryVec = std::vector<detail::HashKey>;
@@ -552,6 +575,43 @@ public:
 		}
 
 	~Dictionary() { Clear(); }
+
+	void Clone(const Dictionary& d, detail::CloneState* state)
+		{
+		if ( this == &d )
+			return;
+
+		// We don't want to allow this during iteration because it'll just cause a giant mess.
+		// Return an warning if there are active iterations on the input dictionary.
+		if ( d.num_iterators != 0 )
+			{
+			reporter->InternalWarning("Can't copy a Dictionary with active iterators");
+			return;
+			}
+
+		// Clear out anything that we might be storing already.
+		Clear();
+
+		// This will initialize log2_buckets, bucket_capacity, and bucket_count.
+		SetLog2Buckets(d.log2_buckets);
+
+		num_entries = d.num_entries;
+		max_entries = d.max_entries;
+		cum_entries = d.cum_entries;
+
+		delete_func = d.delete_func;
+
+		// If the other dictionary actually has a table, initialize ours so it matches
+		// and then copy the values over.
+		if ( d.table )
+			{
+			Init();
+
+			for ( int i = 0; i < ExpectedCapacity(); i++ )
+				if ( ! d.table[i].Empty() )
+					table[i].Clone(d.table[i], state);
+			}
+		}
 
 	// Member functions for looking up a key, inserting/changing its
 	// contents, and deleting it.  These come in two flavors: one
