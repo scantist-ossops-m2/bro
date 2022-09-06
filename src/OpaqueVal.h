@@ -13,6 +13,7 @@
 #include <paraglob/paraglob.h>
 #include <sys/types.h> // for u_char
 
+#include "zeek/CloneState.h"
 #include "zeek/IntrusivePtr.h"
 #include "zeek/RandTest.h"
 #include "zeek/Val.h"
@@ -169,7 +170,7 @@ protected:
 	 * may also override this with a more efficient custom clone
 	 * implementation of their own.
 	 */
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 	/**
 	 * Helper function for derived class that need to record a type
@@ -241,7 +242,7 @@ public:
 	MD5Val();
 	~MD5Val();
 
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 protected:
 	friend class Val;
@@ -270,7 +271,7 @@ public:
 	SHA1Val();
 	~SHA1Val();
 
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 protected:
 	friend class Val;
@@ -299,7 +300,7 @@ public:
 	SHA256Val();
 	~SHA256Val();
 
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 protected:
 	friend class Val;
@@ -339,7 +340,7 @@ public:
 	explicit BloomFilterVal(probabilistic::BloomFilter* bf);
 	~BloomFilterVal() override;
 
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 	const TypePtr& Type() const { return type; }
 
@@ -376,7 +377,7 @@ public:
 	explicit CardinalityVal(probabilistic::detail::CardinalityCounter*);
 	~CardinalityVal() override;
 
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 
 	void Add(const Val* val);
 
@@ -401,7 +402,7 @@ class ParaglobVal : public OpaqueVal
 public:
 	explicit ParaglobVal(std::unique_ptr<paraglob::Paraglob> p);
 	VectorValPtr Get(StringVal*& pattern);
-	ValPtr DoClone(CloneState* state) override;
+	ValPtr DoClone(detail::CloneState* state) override;
 	bool operator==(const ParaglobVal& other) const;
 
 protected:
@@ -446,7 +447,7 @@ public:
 	Handle GetHandle() const noexcept { return hdl; }
 
 protected:
-	ValPtr DoClone(CloneState*) override { return make_intrusive<TelemetryValImpl>(hdl); }
+	ValPtr DoClone(detail::CloneState*) override { return make_intrusive<TelemetryValImpl>(hdl); }
 
 	const char* OpaqueName() const override { return Handle::OpaqueName; }
 
