@@ -73,3 +73,6 @@
 [submodule "auxil/libunistd"]
 	path = auxil/libunistd
 	url = https://github.com/zeek/libunistd
+[submodule "auxil/opentelemetry-cpp"]
+	path = auxil/opentelemetry-cpp
+	url = https://github.com/open-telemetry/opentelemetry-cpp
