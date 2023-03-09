@@ -16,7 +16,7 @@ zeek_add_plugin(
         krb-defs.pac
         krb-types.pac
         krb-padata.pac
-        ../asn1/asn1.pac
+        ${PROJECT_SOURCE_DIR}/src/analyzer/protocol/asn1/asn1.pac
     PAC
         krb_TCP.pac
         krb-protocol.pac
@@ -25,5 +25,5 @@ zeek_add_plugin(
         krb-defs.pac
         krb-types.pac
         krb-padata.pac
-        ../asn1/asn1.pac
+        ${PROJECT_SOURCE_DIR}/src/analyzer/protocol/asn1/asn1.pac
 )

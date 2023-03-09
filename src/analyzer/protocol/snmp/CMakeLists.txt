@@ -11,5 +11,5 @@ zeek_add_plugin(
         snmp.pac
         snmp-protocol.pac
         snmp-analyzer.pac
-        ../asn1/asn1.pac
+        ${PROJECT_SOURCE_DIR}/src/analyzer/protocol/asn1/asn1.pac
 )

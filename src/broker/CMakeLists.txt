@@ -5,15 +5,9 @@ zeek_add_subdir_library(
         Data.cc
         Manager.cc
         Store.cc
+    BIFS
+        comm.bif
+        data.bif
+        messaging.bif
+        store.bif
 )
-
-# Treat BIFs as builtin (alternative mode).
-set(bifs
-    comm.bif
-    data.bif
-    messaging.bif
-    store.bif
-)
-foreach ( bif ${bifs} )
-    bif_target(${bif})
-endforeach()

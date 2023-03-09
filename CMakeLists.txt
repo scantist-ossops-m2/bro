@@ -130,10 +130,10 @@ set(ZEEK_PLUGIN_SCRIPTS_PATH "${PROJECT_SOURCE_DIR}/cmake")
 # Our C++17 base target for propagating compiler and linker flags.
 # Note: for now, we only use it for passing library dependencies around.
 add_library(zeek_internal INTERFACE)
-target_compile_features(zeek_internal INTERFACE cxx_std_17)
 add_library(Zeek::Internal ALIAS zeek_internal)
 set_target_properties(zeek_internal PROPERTIES EXPORT_NAME Internal)
 install(TARGETS zeek_internal EXPORT ZeekTargets)
+target_compile_features(zeek_internal INTERFACE cxx_std_17)
 
 # Target for bundling the creation of auto-generated files.
 add_custom_target(zeek_autogen_files)
@@ -142,7 +142,6 @@ add_custom_target(zeek_autogen_files)
 # reasons and backwards compatibility).
 if (ZEEK_STANDALONE)
     add_executable(zeek_exe)
-    set(zeek_exe_access PRIVATE)
     target_link_libraries(zeek_exe PRIVATE $<BUILD_INTERFACE:zeek_internal>)
     add_dependencies(zeek_exe zeek_autogen_files)
     set_target_properties(zeek_exe PROPERTIES RUNTIME_OUTPUT_NAME zeek)
@@ -155,6 +154,8 @@ if (ZEEK_STANDALONE)
     if ( MSVC )
         set(WINDOWS_EXPORT_ALL_SYMBOLS ON)
     endif ()
+    # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
+    set(zeek_exe_access PRIVATE)
     # Set RPATH to our lib install dir for finding libraries we install
     # alongside Zeek.
     set_target_properties(
@@ -171,21 +172,23 @@ endif()
 
 if (TARGET zeek_lib)
     target_link_libraries(zeek_lib PRIVATE $<BUILD_INTERFACE:zeek_internal>)
-    set(zeek_lib_access PRIVATE)
     add_dependencies(zeek_lib zeek_autogen_files)
     set_target_properties(zeek_lib PROPERTIES RUNTIME_OUTPUT_NAME libzeek)
     if (NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
         set_target_properties(zeek_lie PROPERTIES LIBRARY_OUTPUT_DIRECTORY src)
     endif()
     install(TARGETS zeek_lib LIBRARY DESTINATION lib)
+    # Tell zeek_target_link_libraries to add library dependencies as PRIVATE.
+    set(zeek_lib_access PRIVATE)
 endif()
 
 # When building our fuzzers, we also need one extra top-level target that
 # bundles all of our object libraries and other dependencies.
 if ( ZEEK_ENABLE_FUZZERS )
     add_library(zeek_fuzzer_shared SHARED)
-    set(zeek_fuzzer_shared_access PUBLIC)
     target_link_libraries(zeek_fuzzer_shared PUBLIC $<BUILD_INTERFACE:zeek_internal>)
+    # Tell zeek_target_link_libraries to add library dependencies as PUBLIC.
+    set(zeek_fuzzer_shared_access PUBLIC)
 endif ()
 
 # Convenience function for adding library dependencies to the main target(s).
