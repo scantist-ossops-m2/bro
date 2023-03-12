@@ -5,9 +5,8 @@ zeek_add_subdir_library(
         Manager.cc
         WriterBackend.cc
         WriterFrontend.cc
+    BIFS
+        logging.bif
 )
-
-# Treat BIFs as builtin (alternative mode).
-bif_target(logging.bif)
 
 add_subdirectory(writers)

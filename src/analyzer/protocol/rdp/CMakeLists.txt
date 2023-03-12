@@ -12,7 +12,7 @@ zeek_add_plugin(
         rdp.pac
         rdp-analyzer.pac
         rdp-protocol.pac
-        ../asn1/asn1.pac
+        ${PROJECT_SOURCE_DIR}/src/analyzer/protocol/asn1/asn1.pac
     PAC
         rdpeudp.pac
         rdpeudp-analyzer.pac

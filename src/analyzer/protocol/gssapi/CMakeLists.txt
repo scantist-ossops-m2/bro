@@ -10,5 +10,5 @@ zeek_add_plugin(
         gssapi.pac
         gssapi-protocol.pac
         gssapi-analyzer.pac
-        ../asn1/asn1.pac
+        ${PROJECT_SOURCE_DIR}/src/analyzer/protocol/asn1/asn1.pac
 )

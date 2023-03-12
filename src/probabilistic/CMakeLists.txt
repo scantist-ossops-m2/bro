@@ -7,14 +7,8 @@ zeek_add_subdir_library(
         CounterVector.cc
         Hasher.cc
         Topk.cc
+    BIFS
+        bloom-filter.bif
+        cardinality-counter.bif
+        top-k.bif
 )
-
-# Treat BIFs as builtin (alternative mode).
-set(bifs
-    bloom-filter.bif
-    cardinality-counter.bif
-    top-k.bif
-)
-foreach ( bif ${bifs} )
-    bif_target(${bif})
-endforeach()

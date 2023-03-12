@@ -8,8 +8,8 @@ zeek_add_plugin(
         types.bif
         events.bif
     PAC
-	      ssh.pac
-	      ssh-analyzer.pac
-	      ssh-protocol.pac
-	      consts.pac
+        ssh.pac
+        ssh-analyzer.pac
+        ssh-protocol.pac
+        consts.pac
 )

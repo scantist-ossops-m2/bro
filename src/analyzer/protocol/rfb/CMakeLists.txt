@@ -7,7 +7,7 @@ zeek_add_plugin(
     BIFS
         events.bif
     PAC
-	      rfb.pac
-	      rfb-analyzer.pac
-	      rfb-protocol.pac
+        rfb.pac
+        rfb-analyzer.pac
+        rfb-protocol.pac
 )

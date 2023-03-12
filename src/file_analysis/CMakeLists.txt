@@ -9,9 +9,8 @@ zeek_add_subdir_library(
         Analyzer.cc
         AnalyzerSet.cc
         Component.cc
+    BIFS
+        file_analysis.bif
 )
-
-# Treat BIFs as builtin (alternative mode).
-bif_target(file_analysis.bif)
 
 add_subdirectory(analyzer)

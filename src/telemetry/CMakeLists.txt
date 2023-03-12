@@ -2,7 +2,6 @@ zeek_add_subdir_library(
     telemetry
     SOURCES
         Manager.cc
+    BIFS
+        telemetry.bif
 )
-
-# Treat BIFs as builtin (alternative mode).
-bif_target(telemetry.bif)

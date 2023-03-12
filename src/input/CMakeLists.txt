@@ -5,9 +5,8 @@ zeek_add_subdir_library(
         Manager.cc
         ReaderBackend.cc
         ReaderFrontend.cc
+    BIFS
+        input.bif
 )
-
-# Treat BIFs as builtin (alternative mode).
-bif_target(input.bif)
 
 add_subdirectory(readers)
