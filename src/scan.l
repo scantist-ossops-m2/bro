@@ -57,6 +57,8 @@ extern zeek::EnumType* cur_enum_type;
 // Track the @if... depth.
 static std::intptr_t conditional_depth = 0;
 
+static int ignore_deprecations_depth = 0;
+
 zeek::detail::int_list entry_cond_depth; // @if depth upon starting file
 
 // Tracks how many conditionals there have been.  This value only
@@ -352,6 +354,32 @@ when	return TOK_WHEN;
 
 	zeek::reporter->Deprecation(zeek::util::fmt("deprecated script loaded%s %s", loaded_from.c_str(), comment));
 	}
+
+@pragma{WS}+[0-9a-z-]+ {
+	// Currently supports start-ignore-deprecations and end-ignore-deprecations
+	// directly and otherwise logs a warning. Could have a place to register
+	// pragma handlers if there's many more coming up, or if a plugin should
+	// be allowed to hook in.
+	std::string pragma = zeek::util::skip_whitespace(yytext + 7);
+
+	if ( pragma == "start-ignore-deprecations")
+		{
+		++ignore_deprecations_depth;
+		if ( ignore_deprecations_depth == 1 )
+			zeek::reporter->SetIgnoreDeprecations(true);
+		}
+	else if ( pragma == "end-ignore-deprecations")
+		{
+		if ( ignore_deprecations_depth == 0 )
+			zeek::reporter->Error("end-ignore-deprecations without start-ignore-deprecations");
+
+		--ignore_deprecations_depth;
+		if ( ignore_deprecations_depth == 0 )
+			zeek::reporter->SetIgnoreDeprecations(false);
+		}
+	else
+		zeek::reporter->Warning("Ignoring unknown pragma: %s", pragma.c_str());
+}
 
 @DEBUG	return TOK_DEBUG;	// marks input for debugger
 
